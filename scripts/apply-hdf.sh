@@ -79,6 +79,12 @@ find "$HDF_CORE/framework/model" -name "*.h" -exec cp -v {} include/hdf/ \; 2>/d
 # From adapter network
 find "$HDF_ADAPTER/network" -name "*.h" -exec cp -v {} include/hdf/ \; 2>/dev/null || true
 
+# Copy bounds_checking_function headers (securec.h)
+if [ -n "$BOUNDS_CHECK" ] && [ -d "$BOUNDS_CHECK/include" ]; then
+  mkdir -p include/hdf/securec
+  cp -v "$BOUNDS_CHECK/include/"*.h include/hdf/securec/ 2>/dev/null || true
+  echo "Copied bounds_checking headers"
+fi
 # Verify key headers exist
 echo "=== Header verification ==="
 for h in hdf_base.h osal_mem.h hdf_log.h hdf_types.h; do
