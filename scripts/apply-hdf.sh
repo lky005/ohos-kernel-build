@@ -170,4 +170,9 @@ echo "drivers/hdf/framework/:"
 ls drivers/hdf/framework/ | head -3
 echo "include/hdf/:"
 ls include/hdf/ | head -3
+# Create bounds_checking_function symlink at kernel root
+if [ -n "$BOUNDS_CHECK" ]; then
+  ln -svf "$BOUNDS_CHECK" bounds_checking_function
+  echo "Created bounds_checking_function symlink"
+fi
 echo "=== ALL DONE ==="
