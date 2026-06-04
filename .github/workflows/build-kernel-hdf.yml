@@ -38,12 +38,13 @@ jobs:
         run: |
           git clone --depth=1 https://github.com/openharmony/drivers_adapter_khdf_linux hdf_adapter
           git clone --depth=1 https://github.com/openharmony/drivers_hdf_core hdf_core
+          git clone --depth=1 https://github.com/openharmony/third_party_bounds_checking_function bounds_checking
           du -sh hdf_adapter/ hdf_core/
 
       - name: Apply HDF patch
         run: |
           chmod +x scripts/apply-hdf.sh
-          bash scripts/apply-hdf.sh "$GITHUB_WORKSPACE/kernel" "$GITHUB_WORKSPACE/hdf_adapter" "$GITHUB_WORKSPACE/hdf_core"
+          bash scripts/apply-hdf.sh "$GITHUB_WORKSPACE/kernel" "$GITHUB_WORKSPACE/hdf_adapter" "$GITHUB_WORKSPACE/hdf_core" "$GITHUB_WORKSPACE/bounds_checking"
 
       - name: Generate config
         working-directory: kernel
