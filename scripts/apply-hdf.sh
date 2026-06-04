@@ -48,22 +48,23 @@ export PRODUCT_PATH := vendor/x86_64/pc
 obj-$(CONFIG_DRIVERS_HDF) += khdf/
 MKF
 
-# Create minimal HDF config directory that the adapter expects
-# Path is relative to drivers/hdf/khdf/ (which is symlinked to hdf_adapter)
-# Makefile looks for: ../../../../$(PRODUCT_PATH)/hdf_config/khdf
-# From drivers/hdf/khdf/ that's: kernel_root/vendor/x86_64/pc/hdf_config/khdf
-HCS_DIR="$KERNEL_DIR/vendor/x86_64/pc/hdf_config/khdf"
-mkdir -p "$HCS_DIR"
-# Create minimal .hcs file so the build doesn't fail
-cat > "$HCS_DIR/pc.hcs" << 'HCS'
+# Create HDF config in MULTIPLE possible locations
+# The Makefile uses abspath which resolves relative to the runner home dir
+# Try both kernel-relative and absolute paths
+for HCS_BASE in \
+  "$KERNEL_DIR/vendor/x86_64/pc/hdf_config" \
+  "/home/runner/vendor/x86_64/pc/hdf_config" \
+  "$HOME/vendor/x86_64/pc/hdf_config"; do
+  mkdir -p "$HCS_BASE/khdf"
+  cat > "$HCS_BASE/khdf/pc.hcs" << 'HCS'
 root {
     device_info {
         match_attr = "linux_device";
     }
 }
 HCS
-echo "Created HDF config at: $HCS_DIR"
-ls -la "$HCS_DIR"
+  echo "Created HDF config at: $HCS_BASE/khdf"
+done
 
 # Also fix the Makefile syntax bug (unterminated abspath on line 32)
 # Replace the buggy error block with a simpler one
