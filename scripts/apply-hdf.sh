@@ -40,12 +40,18 @@ ln -sv "$HDF_CORE/framework" drivers/hdf/framework
 rm -rf include/hdf
 ln -sv "$HDF_CORE/framework/include" include/hdf
 
-# 4. NOW create drivers/hdf/Makefile (after symlinks, so it won't be deleted)
+# 4. Create drivers/hdf/Makefile (after symlinks, so it won't be deleted)
 echo "=== Creating drivers/hdf/Makefile ==="
 cat > drivers/hdf/Makefile << 'MKF'
 export PROJECT_ROOT := ../../../../../
+export PRODUCT_PATH := vendor/x86_64/pc
 obj-$(CONFIG_DRIVERS_HDF) += khdf/
 MKF
+
+# Create minimal HDF config directory that the adapter expects
+mkdir -p vendor/x86_64/pc/hdf_config/khdf
+touch vendor/x86_64/pc/hdf_config/khdf/.placeholder
+
 cat drivers/hdf/Makefile
 
 # 5. Patch x86 linker script
