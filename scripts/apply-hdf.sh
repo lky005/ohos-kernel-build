@@ -37,6 +37,15 @@ sed -i 's|arch/arm64/kernel/vmlinux.lds.S|arch/x86/kernel/vmlinux.lds.S|g' /tmp/
 echo "=== Applying HDF patch ==="
 patch -p1 < /tmp/hdf.patch || true
 
+# Create drivers/hdf/Makefile if patch didn't
+if [ ! -f drivers/hdf/Makefile ]; then
+  echo "Creating drivers/hdf/Makefile manually..."
+  cat > drivers/hdf/Makefile << 'MKF'
+export PROJECT_ROOT := ../../../../../
+obj-$(CONFIG_DRIVERS_HDF) += khdf/
+MKF
+fi
+
 # 2. Create symlinks
 echo "=== Creating symlinks ==="
 rm -rf drivers/hdf
