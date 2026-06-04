@@ -40,6 +40,23 @@ ln -sv "$HDF_CORE/framework" drivers/hdf/framework
 rm -rf include/hdf
 ln -sv "$HDF_CORE/framework/include" include/hdf
 
+# Also link inner_api headers (hdf_base.h etc. are here)
+ln -sv "$HDF_CORE/interfaces/inner_api/utils" include/hdf/utils_inner 2>/dev/null || true
+# Copy hdf_base.h directly into the expected location
+mkdir -p include/hdf/utils
+cp -v "$HDF_CORE/interfaces/inner_api/utils/hdf_base.h" include/hdf/utils/ 2>/dev/null || true
+cp -v "$HDF_CORE/interfaces/inner_api/utils/hdf_log.h" include/hdf/utils/ 2>/dev/null || true
+cp -v "$HDF_CORE/interfaces/inner_api/utils/hdf_dlist.h" include/hdf/utils/ 2>/dev/null || true
+cp -v "$HDF_CORE/interfaces/inner_api/utils/hdf_cstring.h" include/hdf/utils/ 2>/dev/null || true
+# Also copy core headers
+cp -v "$HDF_CORE/interfaces/inner_api/core/"*.h include/hdf/core/ 2>/dev/null || true
+mkdir -p include/hdf/core
+cp -v "$HDF_CORE/interfaces/inner_api/core/"*.h include/hdf/core/ 2>/dev/null || true
+# Copy osal headers
+mkdir -p include/hdf/osal
+cp -v "$HDF_CORE/interfaces/inner_api/osal/"*.h include/hdf/osal/ 2>/dev/null || true
+echo "=== Copied inner_api headers ==="
+
 # 4. Create drivers/hdf/Makefile (after symlinks, so it won't be deleted)
 echo "=== Creating drivers/hdf/Makefile ==="
 cat > drivers/hdf/Makefile << 'MKF'
