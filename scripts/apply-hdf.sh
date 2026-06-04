@@ -37,57 +37,59 @@ rm -rf drivers/hdf
 mkdir -p drivers/hdf
 ln -sv "$HDF_ADAPTER" drivers/hdf/khdf
 ln -sv "$HDF_CORE/framework" drivers/hdf/framework
+# Create include/hdf as a REAL directory (not symlink) so we can copy headers into it
 rm -rf include/hdf
-ln -sv "$HDF_CORE/framework/include" include/hdf
+mkdir -p include/hdf
 
-# Also link inner_api headers (hdf_base.h etc. are here)
-# Collect ALL headers from HDF repos into include/hdf/
-echo "=== Collecting ALL HDF headers ==="
+# Copy ALL headers from framework/include
+echo "=== Collecting ALL HDF headers into include/hdf/ ==="
+cp -rv "$HDF_CORE/framework/include/"* include/hdf/ 2>/dev/null || true
 
-# From framework/include (already linked via symlink)
-# From interfaces/inner_api/*
-for subdir in utils core osal/shared; do
+# Copy from interfaces/inner_api/*
+for subdir in utils core; do
   src="$HDF_CORE/interfaces/inner_api/$subdir"
   if [ -d "$src" ]; then
-    dest="include/hdf/$(echo $subdir | sed 's|shared|osal|')"
-    mkdir -p "$dest"
-    cp -v "$src"/*.h "$dest/" 2>/dev/null || true
+    mkdir -p "include/hdf/$subdir"
+    cp -v "$src"/*.h "include/hdf/$subdir/" 2>/dev/null || true
   fi
 done
+# osal/shared → include/hdf/osal
+mkdir -p include/hdf/osal
+cp -v "$HDF_CORE/interfaces/inner_api/osal/shared/"*.h include/hdf/osal/ 2>/dev/null || true
 
-# From adapter/khdf/linux/osal/include
-for h in "$HDF_ADAPTER/osal/include/"*.h; do
-  [ -f "$h" ] && cp -v "$h" include/hdf/osal/ 2>/dev/null || true
-done
+# From adapter osal/include
+cp -v "$HDF_ADAPTER/osal/include/"*.h include/hdf/osal/ 2>/dev/null || true
 
-# From adapter/khdf/linux/include
+# From adapter include
 if [ -d "$HDF_ADAPTER/include" ]; then
   cp -rv "$HDF_ADAPTER/include/"* include/hdf/ 2>/dev/null || true
 fi
 
-# From adapter/khdf/linux/utils
-if [ -d "$HDF_ADAPTER/utils" ]; then
-  find "$HDF_ADAPTER/utils" -name "*.h" -exec cp -v {} include/hdf/utils/ \; 2>/dev/null || true
-fi
+# From adapter utils
+find "$HDF_ADAPTER/utils" -name "*.h" -exec cp -v {} include/hdf/utils/ \; 2>/dev/null || true
 
 # From framework/core/common/include
 if [ -d "$HDF_CORE/framework/core/common/include" ]; then
   cp -rv "$HDF_CORE/framework/core/common/include/"* include/hdf/ 2>/dev/null || true
 fi
 
-# From framework/model/input/driver (HID integration)
-if [ -d "$HDF_CORE/framework/model/input/driver" ]; then
-  find "$HDF_CORE/framework/model/input" -name "*.h" -exec cp -v {} include/hdf/ \; 2>/dev/null || true
-fi
+# From framework/model/input (HID)
+find "$HDF_CORE/framework/model" -name "*.h" -exec cp -v {} include/hdf/ \; 2>/dev/null || true
 
-# From adapter/khdf/linux/network
-if [ -d "$HDF_ADAPTER/network" ]; then
-  find "$HDF_ADAPTER/network" -name "*.h" -exec cp -v {} include/hdf/ \; 2>/dev/null || true
-fi
+# From adapter network
+find "$HDF_ADAPTER/network" -name "*.h" -exec cp -v {} include/hdf/ \; 2>/dev/null || true
 
-echo "=== Header collection complete ==="
-find include/hdf -name "*.h" | wc -l
-echo "total .h files collected"
+# Verify key headers exist
+echo "=== Header verification ==="
+for h in hdf_base.h osal_mem.h hdf_log.h hdf_types.h; do
+  found=$(find include/hdf -name "$h" 2>/dev/null | head -1)
+  if [ -n "$found" ]; then
+    echo "  $h: $found ✓"
+  else
+    echo "  $h: NOT FOUND ✗"
+  fi
+done
+echo "Total headers: $(find include/hdf -name '*.h' | wc -l)"
 
 # 4. Create drivers/hdf/Makefile (after symlinks, so it won't be deleted)
 echo "=== Creating drivers/hdf/Makefile ==="
