@@ -189,7 +189,8 @@ jobs:
           echo "CPU: $(nproc) cores"
           echo "RAM: $(free -h | grep Mem | awk '{print $2}')"
 
-          make ARCH=x86 -j$(nproc) bzImage 2>&1 | tail -50
+          set -o pipefail
+          make ARCH=x86 -j$(nproc) bzImage 2>&1
 
           echo "=== Build result ==="
           ls -lh arch/x86/boot/bzImage
